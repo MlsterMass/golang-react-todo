@@ -1,16 +1,16 @@
 package router
 
 import (
-	"github.com/MlsterMass/golang-react-todo/middleware"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
+	"golang-react-todo/server/middleware"
 )
 
-func Router() *mux.Router {
-	router := mux.NewRouter()
-	router.HandleFunc("/api/task", middleware.GetAllTasks).Methods("GET", "OPTIONS")
-	router.HandleFunc("/api/tasks", middleware.CreateTask).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/tasks/{id}", middleware.TaskComplete).Methods("PUT", "OPTIONS")
-	router.HandleFunc("/api/undoTask/{id}", middleware.UndoTask).Methods("PUT", "OPTIONS")
-	router.HandleFunc("/api/deleteTask/{id}", middleware.DeleteTask).Methods("DELETE", "OPTIONS")
+func InitRoutes() *gin.Engine {
+	router := gin.New()
+	router.GET("/api/task", middleware.GetAllTasks)
+	router.POST("/api/tasks", middleware.CreateTask)
+	router.PUT("/api/tasks/:id", middleware.TaskComplete)
+	router.PUT("/api/undoTask/:id", middleware.UndoTask)
+	router.DELETE("/api/deleteTask/:id", middleware.DeleteTask)
 	return router
 }

@@ -4,15 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/MlsterMass/golang-react-todo/models"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang-react-todo/server/models"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -24,7 +23,7 @@ func init() {
 }
 
 func loadTheEnv() {
-	err := godotenv.Load(".env")
+	err := godotenv.Load("server/.env")
 	if err != nil {
 		log.Fatal("Error loading the .env file")
 	}
@@ -54,63 +53,33 @@ func createDBInstance() {
 	fmt.Println("collection instance created")
 }
 
-func GetAllTasks(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+func GetAllTasks(c *gin.Context) {
 	payload := getAllTasks()
-	json.NewEncoder(w).Encode(payload)
+	json.NewEncoder(c.Writer).Encode(payload)
 }
 
-func CreateTask(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+func CreateTask(c *gin.Context) {
 	var task models.ToDoList
-	json.NewDecoder(r.Body).Decode(&task)
+	json.NewDecoder(c.Request.Body).Decode(&task)
 	insertOneTask(task)
-	json.NewEncoder(w).Encode(task)
+	json.NewEncoder(c.Writer).Encode(task)
 }
 
-func TaskComplete(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "PUT")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-	params := mux.Vars(r)
-	taskComplete(params["id"])
-	json.NewEncoder(w).Encode(params["id"])
+func TaskComplete(c *gin.Context) {
+	id := c.Param("id")
+	taskComplete(id)
+	json.NewEncoder(c.Writer).Encode(id)
 }
 
-func UndoTask(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "PUT")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-	params := mux.Vars(r)
-	undoTask(params["id"])
-	json.NewEncoder(w).Encode(params["id"])
+func UndoTask(c *gin.Context) {
+	params := c.Param("id")
+	undoTask(params)
+	json.NewEncoder(c.Writer).Encode(params)
 }
 
-func DeleteTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	params := mux.Vars(r)
-	deleteOneTask(params["id"])
-
-}
-
-func DeleteAllTasks(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	count := deleteAllTasks()
-	json.NewEncoder(w).Encode(count)
+func DeleteTask(c *gin.Context) {
+	params := c.Param("id")
+	deleteOneTask(params)
 }
 
 func getAllTasks() []primitive.M {
@@ -177,13 +146,4 @@ func deleteOneTask(task string) {
 		log.Fatal(err)
 	}
 	fmt.Println("Deleted Document", d.DeletedCount)
-}
-
-func deleteAllTasks() int64 {
-	d, err := collection.DeleteMany(context.Background(), bson.D{{}}, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Deleted document", d.DeletedCount)
-	return d.DeletedCount
 }

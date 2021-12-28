@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/MlsterMass/golang-react-todo/router"
+	_ "github.com/gin-gonic/gin"
+	"golang-react-todo/server/router"
 	"log"
-	"net/http"
 )
 
 func main() {
-	r := router.Router()
-	fmt.Println("starting the server on port 9000...")
-
-	log.Fatal(http.ListenAndServe(":8888", r))
+	r := router.InitRoutes()
+	fmt.Println("starting the server on port 8888...")
+	log.Fatal(r.Run(":8888"))
 }
